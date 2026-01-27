@@ -14,7 +14,7 @@
         image: mariadb:10.11
         ports: "3306:3306"
         env:
-          MYSQL_ROOT_PASSWORD: "simplepass123"
+          MYSQL_ROOT_PASSWORD: simplepass123
       api:
         image: nginx:alpine
         ports: "8000:80"
@@ -22,7 +22,7 @@
     - name: Create Application Network
       containers.podman.podman_network:
         name: infra-net
-
+      
     - name: Deploy Container Cluster
       containers.podman.podman_container:
         name: "{{ item.key }}{% if item.value.replicas is defined %}-{{ loop.index0 }}{% endif %}"
@@ -30,7 +30,7 @@
         state: started
         ports: "{{ item.value.ports | default(omit) }}"
         networks:
-          - infra-net
+          - name: infra-net
         env: "{{ item.value.env | default({}) }}"
         restart_policy: always
         detach: yes
