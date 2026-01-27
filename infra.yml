@@ -29,15 +29,17 @@
 
     - name: Deploy web replicas
       containers.podman.podman_container:
-        name: "web-{{ ansible_loop.index0 }}"
+        name: "web-{{ _ansible_index }}"
         image: "{{ services.web.image }}"
         state: started
-        ports: "{{ '8081:80' if ansible_loop.index0 > 0 else '8080:80' }}"
+        ports: "{{ '808' ~ (_ansible_index + 1) | string ~ ':80' if _ansible_index > 0 else '8080:80' }}"
         networks:
           - name: infra-net
         restart_policy: always
         detach: yes
-      loop: "{{ range(0, services.web.replicas) | list }}"
+      loop: "{{ services.web.replicas | int }}"
+      loop_control:
+        index_var: _ansible_index
       ignore_errors: yes
 
     - name: Deploy database
