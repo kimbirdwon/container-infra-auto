@@ -9,7 +9,6 @@
       web:
         replicas: 2
         image: nginx:alpine
-        ports: "8080:80"
       database:
         image: mariadb:10.11
         ports: "3306:3306"
@@ -18,6 +17,12 @@
       api:
         image: nginx:alpine
         ports: "8000:80"
+    # Web replicas용 리스트 미리 생성 (range 오류 완전 회피)
+    web_replicas_list:
+      - name: "0"
+        port: "8080:80"
+      - name: "1" 
+        port: "8081:80"
   tasks:
     - name: Cleanup containers
       shell: podman rm -f web-* database api || true
@@ -29,17 +34,15 @@
 
     - name: Deploy web replicas
       containers.podman.podman_container:
-        name: "web-{{ _ansible_index }}"
+        name: "web-{{ item.name }}"
         image: "{{ services.web.image }}"
         state: started
-        ports: "{{ '808' ~ (_ansible_index + 1) | string ~ ':80' if _ansible_index > 0 else '8080:80' }}"
+        ports: "{{ item.port }}"
         networks:
           - name: infra-net
         restart_policy: always
         detach: yes
-      loop: "{{ services.web.replicas | int }}"
-      loop_control:
-        index_var: _ansible_index
+      loop: "{{ web_replicas_list }}"
       ignore_errors: yes
 
     - name: Deploy database
