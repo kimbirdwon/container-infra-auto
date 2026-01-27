@@ -1,0 +1,42 @@
+---
+- name: Deploy Container Infrastructure Stack
+  hosts: localhost
+  connection: local
+  become: yes
+  vars:
+    services:
+      web:
+        replicas: 2
+        image: nginx:alpine
+        ports: "8080:80"
+      database:
+        image: mariadb:10.11
+        ports: "3306:3306"
+        env:
+          MYSQL_ROOT_PASSWORD: "{{ vault_db_pass | default('1234') }}"
+      api:
+        image: nginx:alpine
+        ports: "8000:80"
+
+  vars_files:
+    - secrets.yml
+
+  tasks:
+    - name: Create Application Network
+      containers.podman.podman_network:
+        name: infra-net
+
+    - name: Deploy Container Cluster
+      containers.podman.podman_container:
+        name: "{{ item.key }}{% if item.value.replicas is defined %}-{{ loop.index0 }}{% endif %}"
+        image: "{{ item.value.image }}"
+        state: started
+        ports: "{{ item.value.ports | default(omit) }}"
+        networks:
+          - infra-net
+        env: "{{ item.value.env | default({}) }}"
+        restart_policy: always
+      loop: "{{ services | dict2items }}"
+      loop_control:
+        extended: yes
+EOF
