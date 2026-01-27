@@ -17,12 +17,23 @@
       api:
         image: nginx:alpine
         ports: "8000:80"
-    # Web replicas용 리스트 미리 생성 (range 오류 완전 회피)
     web_replicas_list:
       - name: "0"
         port: "8080:80"
-      - name: "1" 
+      - name: "1"
         port: "8081:80"
+    database_list:
+      - key: "database"
+        value:
+          image: "mariadb:10.11"
+          ports: "3306:3306"
+          env:
+            MYSQL_ROOT_PASSWORD: simplepass123
+    api_list:
+      - key: "api"
+        value:
+          image: "nginx:alpine"
+          ports: "8000:80"
   tasks:
     - name: Cleanup containers
       shell: podman rm -f web-* database api || true
@@ -42,7 +53,7 @@
           - name: infra-net
         restart_policy: always
         detach: yes
-      loop: "{{ web_replicas_list }}"
+      loop: web_replicas_list
       ignore_errors: yes
 
     - name: Deploy database
@@ -56,7 +67,7 @@
         env: "{{ item.value.env | default({}) }}"
         restart_policy: always
         detach: yes
-      loop: "{{ {'database': services.database} | dict2items }}"
+      loop: database_list
       ignore_errors: yes
 
     - name: Deploy api
@@ -69,5 +80,5 @@
           - name: infra-net
         restart_policy: always
         detach: yes
-      loop: "{{ {'api': services.api} | dict2items }}"
+      loop: api_list
       ignore_errors: yes
