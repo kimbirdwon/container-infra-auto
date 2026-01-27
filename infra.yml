@@ -19,20 +19,50 @@
         image: nginx:alpine
         ports: "8000:80"
   tasks:
-    - shell: podman rm -f web-* database api || true
+    - name: Cleanup containers
+      shell: podman rm -f web-* database api || true
       ignore_errors: yes
-    - containers.podman.podman_network:
+
+    - name: Create network
+      containers.podman.podman_network:
         name: infra-net
-    - containers.podman.podman_container:
-        name: "{{ item.key }}{% if item.value.replicas is defined %}-{{ loop.index0 }}{% endif %}"
+
+    - name: Deploy web replicas
+      containers.podman.podman_container:
+        name: "web-{{ ansible_loop.index0 }}"
+        image: "{{ services.web.image }}"
+        state: started
+        ports: "{{ '8081:80' if ansible_loop.index0 > 0 else '8080:80' }}"
+        networks:
+          - name: infra-net
+        restart_policy: always
+        detach: yes
+      loop: "{{ range(0, services.web.replicas) | list }}"
+      ignore_errors: yes
+
+    - name: Deploy database
+      containers.podman.podman_container:
+        name: "{{ item.key }}"
         image: "{{ item.value.image }}"
         state: started
-        ports: "{{ item.value.ports | default(omit) }}"
+        ports: "{{ item.value.ports }}"
         networks:
           - name: infra-net
         env: "{{ item.value.env | default({}) }}"
         restart_policy: always
         detach: yes
-      loop: "{{ services | dict2items }}"
-      loop_control:
-        extended: yes
+      loop: "{{ {'database': services.database} | dict2items }}"
+      ignore_errors: yes
+
+    - name: Deploy api
+      containers.podman.podman_container:
+        name: "{{ item.key }}"
+        image: "{{ item.value.image }}"
+        state: started
+        ports: "{{ item.value.ports }}"
+        networks:
+          - name: infra-net
+        restart_policy: always
+        detach: yes
+      loop: "{{ {'api': services.api} | dict2items }}"
+      ignore_errors: yes
