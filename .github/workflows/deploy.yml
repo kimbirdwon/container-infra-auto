@@ -11,31 +11,34 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     
+    - name: Setup Docker
+      uses: docker/setup-buildx-action@v3
+      
     - name: Setup Python
       uses: actions/setup-python@v5
       with:
         python-version: '3.12'
     
-    - name: Install Ansible + Docker
+    - name: Install Ansible
       run: |
         pip install ansible==8.7.0
-        ansible-galaxy collection install community.docker
+        ansible-galaxy collection install community.docker --force
     
-    - name: Syntax check only
+    - name: Syntax check
       run: ansible-playbook infra.yml --syntax-check
     
-    - name: Test deploy
+    - name: Dry run
+      run: ansible-playbook infra.yml --check
+    
+    - name: Deploy & Test
       run: |
         ansible-playbook infra.yml
-        sleep 10
-        curl -f http://localhost:8080 || echo "Web1 OK"
-        curl -f http://localhost:8081 || echo "Web2 OK"  
-        curl -f http://localhost:8000 || echo "API OK"
+        sleep 15
         docker ps
+        curl -s -o /dev/null -w "%{http_code}" http://localhost:8080 || echo "Web1"
+        curl -s -o /dev/null -w "%{http_code}" http://localhost:8081 || echo "Web2"
+        curl -s -o /dev/null -w "%{http_code}" http://localhost:8000 || echo "API"
     
     - name: Cleanup
       if: always()
-      run: |
-        docker stop $(docker ps -q) || true
-        docker rm $(docker ps -aq) || true
-        docker network rm infra-net || true
+      run: docker rm -f $(docker ps -aq 2>/dev/null) || true
