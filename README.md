@@ -6,7 +6,7 @@
 - API 서버 (Nginx) → 8000
 - Docker Network (infra-net) → 컨테이너 간 연결
 
-**Ubuntu**
+**GitHub runner VM (임시 서버)**
 
 ↓ Docker 설치
 
