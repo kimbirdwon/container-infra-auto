@@ -22,7 +22,7 @@
   tasks:
     - name: Cleanup containers
       shell: docker rm -f web-* database api || true
-      ignore_errors: yes
+      ignore_errors: true
 
     - name: Create network
       docker_network:
@@ -40,7 +40,7 @@
       loop:
         - [ "0", "0" ]
         - [ "1", "1" ]
-      ignore_errors: yes
+      ignore_errors: true
 
     - name: Deploy database
       docker_container:
@@ -52,7 +52,7 @@
           - name: infra-net
         env: "{{ services.database.env }}"
         restart_policy: always
-      ignore_errors: yes
+      ignore_errors: true
 
     - name: Deploy api
       docker_container:
@@ -63,4 +63,4 @@
         networks:
           - name: infra-net
         restart_policy: always
-      ignore_errors: yes
+      ignore_errors: true
