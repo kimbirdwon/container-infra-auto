@@ -22,6 +22,7 @@
 
 └─ api (Nginx API)
 
+<!--
 ## Docker 설치
 ```bash
 sudo apt remove --purge containerd containerd.io docker.io -y
@@ -42,6 +43,7 @@ sudo usermod -aG docker $USER && newgrp docker
 sudo apt install -y ansible-core
 ansible-galaxy collection install community.docker
 ```
+-->
 
 ## 배포
 ### 자동
