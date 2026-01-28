@@ -8,9 +8,11 @@
 
 **Ubuntu**
 
-↓ Docker 엔진 설치
+↓ Docker 설치
 
-↓ 컨테이너 서버 생성 (Ansible)
+↓ Ansible (infra.yml)
+
+↓ GitHub Actions (.github/workflows/deploy.yml)
 
 ├─ web-0 (Nginx 웹)
 
