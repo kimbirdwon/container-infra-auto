@@ -1,4 +1,4 @@
-# Container Infra Auto Deployment with ![Ubuntu](https://img.shields.io/badge/Ubuntu-24.04-orange?logo=ubuntu&logoColor=white) ![Ansible](https://img.shields.io/badge/Ansible-2.16-blue?logo=ansible&logoColor=white)
+# Container Infra Auto Deployment with ![Ansible](https://img.shields.io/badge/Ansible-2.16-blue?logo=ansible&logoColor=white)
 
 **Ansible + Docker로 컨테이너 인프라 자동 배포**
 - Nginx 웹서버 (2 Replicas) → 8080, 8081
