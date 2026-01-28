@@ -1,9 +1,9 @@
 ---
-- name: Deploy Container Infrastructure Stack
+- name: Deploy Container Infrastructure Stack (Ubuntu Docker)
   hosts: localhost
   connection: local
   gather_facts: no
-  become: no
+  become: yes
   vars:
     services:
       web:
@@ -11,74 +11,56 @@
         image: nginx:alpine
       database:
         image: mariadb:10.11
-        ports: "3306:3306"
+        container_port: "3306"
+        host_port: "3306"
         env:
           MYSQL_ROOT_PASSWORD: simplepass123
       api:
         image: nginx:alpine
-        ports: "8000:80"
-    web_replicas_list:
-      - name: "0"
-        port: "8080:80"
-      - name: "1"
-        port: "8081:80"
-    database_list:
-      - key: "database"
-        value:
-          image: "mariadb:10.11"
-          ports: "3306:3306"
-          env:
-            MYSQL_ROOT_PASSWORD: simplepass123
-    api_list:
-      - key: "api"
-        value:
-          image: "nginx:alpine"
-          ports: "8000:80"
+        container_port: "80"
+        host_port: "8000"
   tasks:
     - name: Cleanup containers
-      shell: podman rm -f web-* database api || true
+      shell: docker rm -f web-* database api || true
       ignore_errors: yes
 
     - name: Create network
-      containers.podman.podman_network:
+      docker_network:
         name: infra-net
 
     - name: Deploy web replicas
-      containers.podman.podman_container:
-        name: "web-{{ item.name }}"
+      docker_container:
+        name: "web-{{ item.0 }}"
         image: "{{ services.web.image }}"
         state: started
-        ports: "{{ item.port }}"
+        ports: ["{{ '808' ~ item.1 ~ ':80' }}"]
         networks:
           - name: infra-net
         restart_policy: always
-        detach: yes
-      loop: web_replicas_list
+      loop:
+        - [ "0", "0" ]
+        - [ "1", "1" ]
       ignore_errors: yes
 
     - name: Deploy database
-      containers.podman.podman_container:
-        name: "{{ item.key }}"
-        image: "{{ item.value.image }}"
+      docker_container:
+        name: database
+        image: "{{ services.database.image }}"
         state: started
-        ports: "{{ item.value.ports }}"
+        ports: ["{{ services.database.host_port }}:{{ services.database.container_port }}"]
         networks:
           - name: infra-net
-        env: "{{ item.value.env | default({}) }}"
+        env: "{{ services.database.env }}"
         restart_policy: always
-        detach: yes
-      loop: database_list
       ignore_errors: yes
 
     - name: Deploy api
-      containers.podman.podman_container:
-        name: "{{ item.key }}"
-        image: "{{ item.value.image }}"
+      docker_container:
+        name: api
+        image: "{{ services.api.image }}"
         state: started
-        ports: "{{ item.value.ports }}"
+        ports: ["{{ services.api.host_port }}:{{ services.api.container_port }}"]
         networks:
           - name: infra-net
         restart_policy: always
-        detach: yes
-      loop: api_list
       ignore_errors: yes
