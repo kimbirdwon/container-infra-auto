@@ -1,4 +1,4 @@
-name: Ansible Docker Test
+name: Ansible Docker CI/CD
 on:
   push:
     branches: [ main ]
