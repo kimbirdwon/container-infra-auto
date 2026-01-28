@@ -41,21 +41,13 @@ sudo apt install -y ansible-core
 ansible-galaxy collection install community.docker
 ```
 
-### >>> infra.yml 파일 생성 후
+## 배포
+### 자동
+- deploy.yml 수정 → Commit changes
 
-## 배포 실행
-```bash
-ansible-playbook infra.yml
-```
-<img alt="image" src="https://github.com/user-attachments/assets/6a8278e4-02e7-440b-a1de-7b443a5c695b" width="800" />
+<img alt="image" src="https://github.com/user-attachments/assets/56cff9d7-656d-4d0d-9a0d-52a9b719abf2" width="1000"/>
 
-## 검증
-```bash
-docker ps
-```
-<img alt="image" src="https://github.com/user-attachments/assets/3b0810ca-910c-4a23-82cb-651ca7b11df5" width="800"/>
+### 수동
+- Actions → Run workflow
 
-```bash
-curl localhost:8080
-```
-<img alt="image" src="https://github.com/user-attachments/assets/4e6bb267-fef9-4961-b072-9b4be1d452c7" width="800"/>
+<img alt="image" src="https://github.com/user-attachments/assets/5e065bdf-0763-45d1-9d57-52605b707163" width="1000"/>
