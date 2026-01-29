@@ -41,3 +41,4 @@ jobs:
     
     - name: Cleanup
       run: docker rm -f $(docker ps -aq) 2>/dev/null || true
+
